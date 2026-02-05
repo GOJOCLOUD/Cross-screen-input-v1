@@ -28,6 +28,10 @@ BASE_KEY_MAP = {
     # 修饰键（平台无关部分）
     'alt': Key.alt,
     'shift': Key.shift,
+    'alt_l': Key.alt_l,
+    'alt_r': Key.alt_r,
+    'shift_l': Key.shift_l,
+    'shift_r': Key.shift_r,
     
     # 方向键
     'up': Key.up,
@@ -39,6 +43,8 @@ BASE_KEY_MAP = {
     'backspace': Key.backspace,
     'delete': Key.delete,
     'del': Key.delete,  # 别名
+    'insert': Key.insert,
+    'ins': Key.insert,  # 别名
     
     # 导航键
     'home': Key.home,
@@ -58,18 +64,66 @@ BASE_KEY_MAP = {
     'prtsc': Key.print_screen,  # 打印屏幕键
     'printscreen': Key.print_screen,  # 别名
     'print_scr': Key.print_screen,  # 别名
+    'ps': Key.print_screen,  # 别名
+    'print': Key.print_screen,  # 别名
+    'scroll_lock': Key.scroll_lock,
+    'scroll': Key.scroll_lock,  # 别名
+    'pause': Key.pause,
+    'break': Key.pause,  # 别名
+    'menu': Key.menu,
+    'apps': Key.menu,  # 别名
     
     # 锁定键
     'caps_lock': Key.caps_lock,
+    'caps': Key.caps_lock,  # 别名
+    'num_lock': Key.num_lock,
+    'num': Key.num_lock,  # 别名
     
     # 媒体键
     'volume_up': Key.media_volume_up,
     'volume_down': Key.media_volume_down,
     'volume_mute': Key.media_volume_mute,
     'play_pause': Key.media_play_pause,
+    'play': Key.media_play_pause,  # 别名
+    'pause': Key.media_play_pause,  # 别名
     'next': Key.media_next,
+    'next_track': Key.media_next,  # 别名
     'previous': Key.media_previous,
+    'prev': Key.media_previous,  # 别名
+    'prev_track': Key.media_previous,  # 别名
+    'stop': Key.media_stop,
+    'eject': Key.media_eject,
+    
+    # 功能键（f1-f20）已经在解析函数中处理
 }
+
+# 数字小键盘按键映射
+NUM_PAD_KEY_MAP = {
+    'num_0': '0',
+    'num_1': '1',
+    'num_2': '2',
+    'num_3': '3',
+    'num_4': '4',
+    'num_5': '5',
+    'num_6': '6',
+    'num_7': '7',
+    'num_8': '8',
+    'num_9': '9',
+    'num_decimal': '.',
+    'num_dot': '.',  # 别名
+    'num_add': '+',
+    'num_subtract': '-',
+    'num_minus': '-',  # 别名
+    'num_multiply': '*',
+    'num_star': '*',  # 别名
+    'num_divide': '/',
+    'num_slash': '/',  # 别名
+    'num_enter': Key.enter,
+    'num_return': Key.enter,  # 别名
+}
+
+# 合并数字小键盘映射到基础映射表
+BASE_KEY_MAP.update(NUM_PAD_KEY_MAP)
 
 # 合并映射表（使用公共模块的修饰键映射）
 KEY_MAP = {**BASE_KEY_MAP, **MODIFIER_KEY_MAP}
