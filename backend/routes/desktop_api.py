@@ -32,9 +32,22 @@ def get_local_ip() -> str:
 def get_hotspot_ip() -> Optional[str]:
     """获取热点IP地址（10.x.x.x格式）"""
     try:
-        result = subprocess.run(['ifconfig'], capture_output=True, text=True)
-        # 查找10.x.x.x格式的IP地址
-        hotspot_ips = re.findall(r'inet\s+(10\.\d+\.\d+\.\d+)', result.stdout)
+        import platform
+        system = platform.system()
+        
+        if system == 'Windows':
+            # Windows使用ipconfig命令
+            result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+            # 查找10.x.x.x格式的IP地址
+            hotspot_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
+            # 如果没有找到，尝试其他格式
+            if not hotspot_ips:
+                hotspot_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
+        else:
+            # macOS/Linux使用ifconfig命令
+            result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+            # 查找10.x.x.x格式的IP地址
+            hotspot_ips = re.findall(r'inet\s+(10\.\d+\.\d+\.\d+)', result.stdout)
         
         if hotspot_ips:
             return hotspot_ips[0]  # 返回第一个找到的热点IP
