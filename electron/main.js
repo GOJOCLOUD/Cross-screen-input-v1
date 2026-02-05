@@ -281,12 +281,32 @@ async function startPythonBackend() {
     // 启动后端进程
     try {
       console.log('正在启动后端进程...');
+      console.log('启动命令:', spawnCmd);
+      console.log('启动参数:', spawnArgs);
+      console.log('工作目录:', spawnCwd);
+      
       pythonProcess = spawn(spawnCmd, spawnArgs, {
         cwd: spawnCwd,
         env: env,
         stdio: ['pipe', 'pipe', 'pipe']
       });
+      
       console.log('后端进程已启动，PID:', pythonProcess.pid);
+      
+      // 定期检查后端进程状态
+      const checkInterval = setInterval(() => {
+        if (pythonProcess) {
+          console.log('后端进程状态检查:', {
+            pid: pythonProcess.pid,
+            killed: pythonProcess.killed,
+            exitCode: pythonProcess.exitCode,
+            signalCode: pythonProcess.signalCode
+          });
+        } else {
+          clearInterval(checkInterval);
+        }
+      }, 2000);
+      
     } catch (err) {
       console.error('spawn 失败:', err);
       console.error('错误堆栈:', err.stack);
@@ -319,8 +339,8 @@ async function startPythonBackend() {
       // 如果应用正在退出（isQuitting=true），不提示错误
       if (!wasQuitting && !isQuitting) {
         console.log('⚠️ 后端进程意外退出，但应用仍在运行');
-        // 不显示错误对话框，因为应用可能只是最小化到后台
-        // 用户重新打开窗口时会自动重启后端
+        // 显示错误对话框，因为这可能是一个严重问题
+        dialog.showErrorBox('后端服务异常', `后端服务意外退出:\n\n退出代码: ${code}\n信号: ${signal}\n\n请检查后端服务是否正常工作。`);
       }
     });
     
