@@ -161,11 +161,11 @@ jobs:
           echo "backend\dist\kpsr-backend directory not found"
         }
         echo "Release directory contents:"
-        dir release /s
+        dir release -Recurse
         
     - name: List release files
       run: |
-        dir release /s
+        dir release -Recurse
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
