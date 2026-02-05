@@ -74,11 +74,26 @@ jobs:
     - name: Build Python backend
       run: |
         cd backend
-        pyinstaller kpsr-backend.spec --clean
+        echo "Current directory: $(pwd)"
+        echo "Files in backend directory:"
+        dir
+        echo "Running PyInstaller..."
+        pyinstaller kpsr-backend.spec --clean --log-level=DEBUG
+        echo "PyInstaller completed. Checking results..."
+        dir dist
+        if (Test-Path "dist\kpsr-backend") {
+          dir dist\kpsr-backend
+        }
         
     - name: Verify backend build
       run: |
-        if (!(Test-Path "dist\kpsr-backend\kpsr-backend.exe")) {
+        echo "Current directory: $(pwd)"
+        echo "Checking for backend executable..."
+        if (Test-Path "backend\dist\kpsr-backend\kpsr-backend.exe") {
+          echo "Backend executable found at: backend\dist\kpsr-backend\kpsr-backend.exe"
+        } else {
+          echo "Backend executable not found. Listing directory structure:"
+          dir /s
           Write-Error "Backend build failed"
           exit 1
         }
@@ -98,9 +113,29 @@ jobs:
     - name: Create release package
       shell: powershell
       run: |
+        echo "Current directory: $(pwd)"
+        echo "Creating release directory..."
         mkdir release
-        copy electron\dist\*.exe release\
-        xcopy /E /I backend\dist\kpsr-backend\* release\kpsr-backend\
+        echo "Checking electron dist directory..."
+        if (Test-Path "electron\dist") {
+          echo "Files in electron\dist:"
+          dir electron\dist
+          echo "Copying electron executables..."
+          copy electron\dist\*.exe release\
+        } else {
+          echo "electron\dist directory not found"
+        }
+        echo "Checking backend dist directory..."
+        if (Test-Path "backend\dist\kpsr-backend") {
+          echo "Files in backend\dist\kpsr-backend:"
+          dir backend\dist\kpsr-backend
+          echo "Copying backend files..."
+          xcopy /E /I backend\dist\kpsr-backend\* release\kpsr-backend\
+        } else {
+          echo "backend\dist\kpsr-backend directory not found"
+        }
+        echo "Release directory contents:"
+        dir release /s
         
     - name: List release files
       run: |
