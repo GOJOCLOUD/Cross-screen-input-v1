@@ -7,8 +7,8 @@ const treeKill = require('tree-kill');
 
 // 日志文件路径
 function getLogFilePath() {
-  // 使用桌面作为日志目录，更易访问
-  let logDir = path.join(app.getPath('desktop'), 'KPSR-Logs');
+  // 使用应用数据目录作为日志目录，避免在桌面创建文件
+  let logDir = path.join(app.getPath('appData'), 'KPSR', 'logs');
   // 确保日志目录存在
   if (!fs.existsSync(logDir)) {
     try {
@@ -16,8 +16,8 @@ function getLogFilePath() {
       console.log('日志目录已创建:', logDir);
     } catch (err) {
       console.error('创建日志目录失败:', err);
-      // 回退到应用数据目录
-      const fallbackDir = path.join(app.getPath('appData'), 'KPSR', 'logs');
+      // 回退到临时目录
+      const fallbackDir = path.join(app.getPath('temp'), 'KPSR', 'logs');
       if (!fs.existsSync(fallbackDir)) {
         fs.mkdirSync(fallbackDir, { recursive: true });
       }
