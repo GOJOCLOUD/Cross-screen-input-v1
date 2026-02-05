@@ -66,7 +66,6 @@ BASE_KEY_MAP = {
     'play_pause': Key.media_play_pause,
     'next': Key.media_next,
     'previous': Key.media_previous,
-    'eject': Key.media_eject,
 }
 
 # 合并映射表（使用公共模块的修饰键映射）
