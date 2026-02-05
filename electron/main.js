@@ -120,6 +120,8 @@ async function waitForServer(port, timeout = 10000) {
 
 // 启动 Python 后端
 async function startPythonBackend() {
+  console.log('=== 开始启动 Python 后端 ===');
+  
   // 如果后端进程已经在运行，先停止它
   if (pythonProcess && pythonProcess.pid) {
     console.log('检测到已有后端进程在运行，先停止旧进程...');
@@ -129,16 +131,20 @@ async function startPythonBackend() {
   }
   
   const backendExePath = getBackendPath();
+  console.log('后端可执行文件路径:', backendExePath);
+  console.log('后端文件是否存在:', fs.existsSync(backendExePath));
   
   // 使用固定端口
   serverPort = FIXED_PORT;
+  console.log('使用固定端口:', serverPort);
   
   return new Promise(async (resolve, reject) => {
     // 设置环境变量
     const env = {
       ...process.env,
       PYTHONUNBUFFERED: '1',
-      PYTHONIOENCODING: 'utf-8'
+      PYTHONIOENCODING: 'utf-8',
+      KPSR_PACKAGED: '1' // 标记为打包环境
     };
     
     let spawnCmd, spawnArgs, spawnCwd;
@@ -154,6 +160,14 @@ async function startPythonBackend() {
         console.error(errMsg);
         reject(new Error(errMsg));
         return;
+      }
+      
+      // 检查文件权限
+      try {
+        fs.accessSync(backendExePath, fs.constants.X_OK);
+        console.log('后端文件有执行权限');
+      } catch (err) {
+        console.error('后端文件无执行权限:', err);
       }
       
       spawnCmd = backendExePath;
@@ -179,32 +193,42 @@ async function startPythonBackend() {
     }
     
     console.log('启动命令:', spawnCmd);
+    console.log('启动参数:', spawnArgs);
     console.log('工作目录:', spawnCwd);
+    console.log('环境变量:', {
+      PYTHONUNBUFFERED: env.PYTHONUNBUFFERED,
+      PYTHONIOENCODING: env.PYTHONIOENCODING,
+      KPSR_PACKAGED: env.KPSR_PACKAGED
+    });
     
     // 启动后端进程
     try {
+      console.log('正在启动后端进程...');
       pythonProcess = spawn(spawnCmd, spawnArgs, {
         cwd: spawnCwd,
         env: env,
         stdio: ['pipe', 'pipe', 'pipe']
       });
+      console.log('后端进程已启动，PID:', pythonProcess.pid);
     } catch (err) {
       console.error('spawn 失败:', err);
+      console.error('错误堆栈:', err.stack);
       reject(err);
       return;
     }
     
     // 监听输出（仅用于日志）
     pythonProcess.stdout.on('data', (data) => {
-      console.log('[Backend]', data.toString().trim());
+      console.log('[Backend stdout]', data.toString().trim());
     });
     
     pythonProcess.stderr.on('data', (data) => {
-      console.log('[Backend]', data.toString().trim());
+      console.error('[Backend stderr]', data.toString().trim());
     });
     
     pythonProcess.on('error', (err) => {
       console.error('后端进程启动失败:', err);
+      console.error('错误堆栈:', err.stack);
       reject(err);
     });
     
@@ -230,15 +254,35 @@ async function startPythonBackend() {
       // 使用固定端口，直接等待服务器就绪
       console.log('使用固定端口:', serverPort);
       
-      // 等待服务器真正就绪（最多10秒）
+      // 等待服务器真正就绪（最多15秒，增加超时时间）
       updateLoadingStatus('正在连接服务...');
-      await waitForServer(serverPort, 10000);
+      
+      // 先等待2秒，让后端有足够的时间启动
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // 检查端口是否被占用
+      console.log('检查端口', serverPort, '是否被占用...');
+      
+      // 等待服务器就绪
+      await waitForServer(serverPort, 15000);
       
       console.log('服务器已就绪');
       isBackendReady = true;
       resolve(serverPort);
     } catch (err) {
       console.error('启动失败:', err);
+      console.error('错误堆栈:', err.stack);
+      
+      // 尝试获取更多信息
+      if (pythonProcess) {
+        console.log('后端进程状态:', {
+          pid: pythonProcess.pid,
+          killed: pythonProcess.killed,
+          exitCode: pythonProcess.exitCode,
+          signalCode: pythonProcess.signalCode
+        });
+      }
+      
       reject(err);
     }
   });
@@ -348,6 +392,14 @@ function createWindow() {
 // 启动后端并导航到主页面
 async function startBackendAndNavigate() {
   try {
+    console.log('开始启动后端服务...');
+    updateLoadingStatus('正在准备启动后端服务...');
+    
+    // 获取后端路径
+    const backendPath = getBackendPath();
+    console.log('后端路径:', backendPath);
+    console.log('后端文件是否存在:', fs.existsSync(backendPath));
+    
     // 启动后端
     await startPythonBackend();
     
@@ -366,7 +418,8 @@ async function startBackendAndNavigate() {
     
   } catch (err) {
     console.error('后端启动失败:', err);
-    showLoadingError(`启动失败: ${err.message}\n\n请尝试重启应用，或检查应用是否完整安装。`);
+    console.error('错误堆栈:', err.stack);
+    showLoadingError(`启动失败: ${err.message}\n\n请尝试重启应用，或检查应用是否完整安装。\n\n详细错误:\n${err.stack}`);
   }
 }
 
