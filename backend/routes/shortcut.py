@@ -92,7 +92,6 @@ BASE_KEY_MAP = {
     'prev': Key.media_previous,  # 别名
     'prev_track': Key.media_previous,  # 别名
     'stop': Key.media_stop,
-    'eject': Key.media_eject,
     
     # 功能键（f1-f20）已经在解析函数中处理
 }
