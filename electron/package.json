@@ -1,7 +1,7 @@
 {
   "name": "kpsr",
   "version": "1.0.0",
-  "description": "KPSR 跨屏输入工具 - 手机控制电脑的剪贴板、快捷键和鼠标",
+  "description": "跨屏输入工具 - 手机控制电脑的剪贴板、快捷键和鼠标",
   "main": "main.js",
   "author": "KPSR",
   "license": "MIT",
@@ -20,7 +20,7 @@
   },
   "build": {
     "appId": "com.kpsr.crossinput",
-    "productName": "KPSR跨屏输入",
+    "productName": "跨屏输入",
     "directories": {
       "output": "dist"
     },
