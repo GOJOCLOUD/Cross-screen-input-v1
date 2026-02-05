@@ -20,8 +20,9 @@ router = APIRouter()
 def get_local_ip() -> str:
     """获取本机局域网IP地址"""
     try:
+        # 使用私有网络地址来获取本地IP，避免使用公共DNS
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
+        s.connect(("10.0.0.1", 80))  # 使用私有网络地址
         ip = s.getsockname()[0]
         s.close()
         return ip
