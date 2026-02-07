@@ -68,8 +68,7 @@
       "identityName": "KPSR.CrossScreenInput",
       "publisher": "CN=KPSR",
       "publisherDisplayName": "KPSR",
-      "backgroundColor": "#2d3436",
-      "logo": "../assets/icons/icon-256.png"
+      "backgroundColor": "#2d3436"
     }
   }
 }
