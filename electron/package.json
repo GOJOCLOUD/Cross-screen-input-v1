@@ -64,7 +64,7 @@
       ],
       "icon": "../assets/icons/installer-icon.ico"
     },
-    "msix": {
+    "appx": {
       "identityName": "KPSR.CrossScreenInput",
       "publisher": "CN=KPSR",
       "publisherDisplayName": "KPSR",
