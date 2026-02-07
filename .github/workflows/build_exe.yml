@@ -1,4 +1,4 @@
-name: Build Windows MSIX
+name: Build Windows APPX
 
 on:
   push:
@@ -126,9 +126,9 @@ jobs:
       run: |
         echo "Current directory: $(pwd)"
         echo "Checking for Electron package..."
-        if (Test-Path "electron\dist\*.msix") {
-          echo "Electron package found at: electron\dist\*.msix"
-          dir electron\dist\*.msix
+        if (Test-Path "electron\dist\*.appx") {
+          echo "Electron package found at: electron\dist\*.appx"
+          dir electron\dist\*.appx
         } else {
           echo "Electron package not found. Listing directory structure:"
           dir /s
@@ -147,7 +147,7 @@ jobs:
           echo "Files in electron\dist:"
           dir electron\dist
           echo "Copying electron packages..."
-          copy electron\dist\*.msix release\
+          copy electron\dist\*.appx release\
         } else {
           echo "electron\dist directory not found"
         }
@@ -170,7 +170,7 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: KPSR-Windows-MSIX
+        name: KPSR-Windows-APPX
         path: release/
         retention-days: 30
         
