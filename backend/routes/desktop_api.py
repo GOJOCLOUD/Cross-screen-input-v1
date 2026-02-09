@@ -30,32 +30,44 @@ def get_local_ip() -> str:
         return "localhost"
 
 
-def get_hotspot_ip() -> Optional[str]:
-    """获取热点IP地址（10.x.x.x格式）"""
+def get_private_ip() -> Optional[str]:
+    """获取私有网络IP地址"""
     try:
         import platform
         system = platform.system()
+        private_ips = []
         
         if system == 'Windows':
             # Windows使用ipconfig命令
             result = subprocess.run(['ipconfig'], capture_output=True, text=True)
-            # 查找10.x.x.x格式的IP地址
-            hotspot_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
+            # 查找私有网络IP地址
+            private_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
+            private_ips.extend(re.findall(r'IPv4 Address[^\d]*(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+            private_ips.extend(re.findall(r'IPv4 Address[^\d]*(192\.168\.\d+\.\d+)', result.stdout))
             # 如果没有找到，尝试其他格式
-            if not hotspot_ips:
-                hotspot_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
+            if not private_ips:
+                private_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
+                private_ips.extend(re.findall(r'(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+                private_ips.extend(re.findall(r'(192\.168\.\d+\.\d+)', result.stdout))
         else:
             # macOS/Linux使用ifconfig命令
             result = subprocess.run(['ifconfig'], capture_output=True, text=True)
-            # 查找10.x.x.x格式的IP地址
-            hotspot_ips = re.findall(r'inet\s+(10\.\d+\.\d+\.\d+)', result.stdout)
+            # 查找私有网络IP地址
+            private_ips = re.findall(r'inet\s+(10\.\d+\.\d+\.\d+)', result.stdout)
+            private_ips.extend(re.findall(r'inet\s+(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+            private_ips.extend(re.findall(r'inet\s+(192\.168\.\d+\.\d+)', result.stdout))
         
-        if hotspot_ips:
-            return hotspot_ips[0]  # 返回第一个找到的热点IP
+        if private_ips:
+            return private_ips[0]  # 返回第一个找到的私有网络IP
         return None
     except Exception as e:
-        app_logger.error(f"获取热点IP失败: {e}", "desktop_api")
+        app_logger.error(f"获取私有网络IP失败: {e}", "desktop_api")
         return None
+
+# 保持向后兼容
+def get_hotspot_ip() -> Optional[str]:
+    """获取热点IP地址（向后兼容）"""
+    return get_private_ip()
 
 
 def get_server_port() -> int:

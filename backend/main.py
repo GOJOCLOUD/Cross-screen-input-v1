@@ -167,13 +167,19 @@ def get_local_ip() -> str:
 
 # 检查是否为私有IP
 def is_private_ip(ip: str) -> bool:
-    """检查IP是否在允许的网络范围内（只允许热点网络10.x.x.x和本机访问）"""
+    """检查IP是否在允许的网络范围内（只允许私有网络和本机访问）"""
     parts = ip.split('.')
     if len(parts) != 4:
         return False
     
     # 检查 10.0.0.0/8（手机热点网络）
     if parts[0] == '10':
+        return True
+    # 检查 172.16.0.0/12（私有网络）
+    elif parts[0] == '172' and 16 <= int(parts[1]) <= 31:
+        return True
+    # 检查 192.168.0.0/16（私有网络）
+    elif parts[0] == '192' and parts[1] == '168':
         return True
     # 检查 localhost
     elif ip == '127.0.0.1' or ip == 'localhost':
@@ -192,9 +198,9 @@ async def private_network_only(request: Request, call_next) -> Response:
         return JSONResponse(
             status_code=403,
             content={
-                "detail": "Forbidden: Only hotspot network and local access allowed",
-                "message": "请确保您的设备连接到手机热点网络",
-                "allowed_networks": ["10.x.x.x", "localhost"]
+                "detail": "Forbidden: Only private network and local access allowed",
+                "message": "请确保您的设备连接到私有网络",
+                "allowed_networks": ["10.x.x.x", "172.16.x.x-172.31.x.x", "192.168.x.x", "localhost"]
             }
         )
     
@@ -236,7 +242,7 @@ if __name__ == "__main__":
     # 获取本地IP
     local_ip = get_local_ip()
     
-    # 只显示localhost和10.x.x.x格式的地址
+    # 显示localhost和私有网络地址
     print("=" * 60)
     print("FastAPI服务器启动信息")
     print("=" * 60)
@@ -244,29 +250,34 @@ if __name__ == "__main__":
     print("服务地址:")
     print(f"  - http://localhost:{port}")
     
-    # 获取所有网络接口的IP地址
+    # 获取所有网络接口的私有IP地址
     try:
         # Windows使用ipconfig命令
         result = subprocess.run(['ipconfig'], capture_output=True, text=True)
-        # 查找10.x.x.x格式的IP地址
-        hotspot_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
+        # 查找所有私有网络IP地址
+        private_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
+        private_ips.extend(re.findall(r'IPv4 Address[^\d]*(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+        private_ips.extend(re.findall(r'IPv4 Address[^\d]*(192\.168\.\d+\.\d+)', result.stdout))
         
         # 如果没有找到，尝试其他格式
-        if not hotspot_ips:
-            hotspot_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
+        if not private_ips:
+            private_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
+            private_ips.extend(re.findall(r'(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+            private_ips.extend(re.findall(r'(192\.168\.\d+\.\d+)', result.stdout))
         
-        # 显示找到的热点IP地址
-        for ip in hotspot_ips:
+        # 去重并显示找到的私有IP地址
+        unique_private_ips = list(set(private_ips))
+        for ip in unique_private_ips:
             print(f"  - http://{ip}:{port}")
     except Exception:
         pass
     
     print("")
     print("重要说明:")
-    print("  - 本服务只允许电脑本机访问和手机热点网络访问")
-    print("  - 请将您的手机连接到电脑的热点网络")
-    print("  - 然后在手机浏览器中使用热点网络地址访问")
-    print(f"  - 热点网络地址格式: 10.x.x.x:{port}")
+    print("  - 本服务只允许电脑本机访问和私有网络访问")
+    print("  - 请将您的手机连接到与电脑相同的私有网络")
+    print("  - 然后在手机浏览器中使用私有网络地址访问")
+    print(f"  - 私有网络地址格式: 10.x.x.x:{port}, 172.16.x.x-{port}, 192.168.x.x:{port}")
     print(f"  - 固定端口: {port}")
     print("")
     print("可用端点:")
