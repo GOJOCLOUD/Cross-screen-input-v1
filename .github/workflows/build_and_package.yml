@@ -63,7 +63,7 @@ jobs:
         powershell -Command "Compress-Archive -Path 'KPSR跨屏输入' -DestinationPath 'KPSR跨屏输入-v1.0.0.zip' -Force"
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: KPSR跨屏输入-Windows
         path: dist/KPSR跨屏输入-v1.0.0.zip
