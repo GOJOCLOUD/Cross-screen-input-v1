@@ -1,0 +1,118 @@
+name: Build and Package Windows Application
+
+on:
+  push:
+    branches: [ second ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        ref: second
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install Node.js dependencies
+      run: |
+        cd electron
+        npm install
+    
+    - name: Build Python backend
+      run: |
+        cd backend
+        pyinstaller kpsr-backend.spec --clean --noconfirm
+    
+    - name: Build Electron frontend
+      run: |
+        cd electron
+        npm run build:win
+    
+    - name: Create package structure
+      run: |
+        mkdir -p dist/KPSR跨屏输入
+        cp -r backend/dist/kpsr-backend/* dist/KPSR跨屏输入/
+        cp -r electron/dist/* dist/KPSR跨屏输入/
+        cp -r frontend dist/KPSR跨屏输入/
+        cp -r assets dist/KPSR跨屏输入/
+        cp README.md dist/KPSR跨屏输入/
+        cp WINDOWS_PACKAGE.md dist/KPSR跨屏输入/
+    
+    - name: Create installer
+      run: |
+        cd dist
+        # 创建安装包
+        powershell -Command "Compress-Archive -Path 'KPSR跨屏输入' -DestinationPath 'KPSR跨屏输入-v1.0.0.zip' -Force"
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: KPSR跨屏输入-Windows
+        path: dist/KPSR跨屏输入-v1.0.0.zip
+        retention-days: 30
+    
+    - name: Get version
+      id: version
+      run: |
+        echo "version=v1.0.0-$(Get-Date -Format 'yyyyMMdd-HHmm')" >> $env:GITHUB_OUTPUT
+        echo "::set-output name=version::v1.0.0-$(Get-Date -Format 'yyyyMMdd-HHmm')"
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/KPSR跨屏输入-v1.0.0.zip
+        draft: false
+        prerelease: false
+        name: KPSR跨屏输入 v1.0.0
+        body: |
+          ## KPSR跨屏输入 v1.0.0
+          
+          ### 新特性
+          - 🌐 支持局域网连接（不仅限于热点）
+          - 🔒 增强的安全机制（Token验证）
+          - 🔄 自动重试和超时处理
+          - 🌐 HTTPS支持
+          - 💓 心跳检测和连接状态监控
+          - 📱 设备配对机制
+          - 🧩 代码模块化重构
+          
+          ### 系统要求
+          - Windows 10/11
+          - .NET Framework 4.5+
+          
+          ### 安装说明
+          1. 下载 `KPSR跨屏输入-v1.0.0.zip`
+          2. 解压缩到任意文件夹
+          3. 运行 `KPSR跨屏输入.exe`
+          4. 按照界面提示操作
+          
+          ### 使用方法
+          1. 启动应用后，会显示二维码和访问地址
+          2. 确保手机和电脑在同一网络
+          3. 手机浏览器访问显示的地址或扫描二维码
+          4. 开始使用跨屏输入功能
+          
+          ### 更新日志
+          - 完整的局域网支持
+          - 安全性大幅提升
+          - 稳定性和可靠性改进
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: ${{ steps.version.outputs.version }}
