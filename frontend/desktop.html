@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨屏输入助手</title>
+    <link rel="stylesheet" href="/frontend/css/desktop.css">
+    <script src="/frontend/js/lib/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">跨屏输入助手</h1>
+            <p class="version">v1.0</p>
+        </header>
+
+        <!-- 二维码 -->
+        <div class="card">
+            <div class="card-title">手机扫码访问</div>
+            <div class="qrcode-wrapper">
+                <div id="qrcode"></div>
+                <p class="qrcode-tip">请将手机连接到同一网络后扫码</p>
+            </div>
+        </div>
+
+        <!-- 访问链接 -->
+        <div class="card">
+            <div class="card-title">访问链接</div>
+            <div class="link-row">
+                <div class="link-display" id="linkDisplay">获取中...</div>
+                <button class="copy-btn" id="copyBtn">复制</button>
+            </div>
+            <div class="copy-feedback" id="copyFeedback">已复制</div>
+        </div>
+
+        <!-- 服务状态 -->
+        <div class="card">
+            <div class="card-title">服务状态</div>
+            <div class="status-list">
+                <div class="status-row">
+                    <span class="status-label">服务器</span>
+                    <span class="status-value">
+                        <span class="status-dot checking" id="serverDot"></span>
+                        <span id="serverText">检查中</span>
+                    </span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">端口</span>
+                    <span class="status-value" id="portText">--</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">网络</span>
+                    <span class="status-value">
+                        <span class="status-dot checking" id="hotspotDot"></span>
+                        <span id="hotspotText">检查中</span>
+                    </span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">鼠标监听</span>
+                    <span class="status-value">
+                        <span class="status-dot checking" id="mouseDot"></span>
+                        <span id="mouseText">检查中</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备管理 -->
+        <div class="card">
+            <div class="card-title">设备管理</div>
+            <div id="deviceList" class="device-list">
+                <div class="empty-state">
+                    <p>正在加载设备列表...</p>
+                </div>
+            </div>
+            <div class="device-actions">
+                <button id="generateTokenBtn" class="button">生成验证令牌</button>
+                <button id="refreshDevicesBtn" class="button">刷新列表</button>
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+            <ol class="info-list">
+                <li>打开电脑的网络功能</li>
+                <li>手机连接到同一网络</li>
+                <li>扫描二维码或输入链接访问</li>
+                <li>在手机端输入内容，自动同步到电脑剪贴板</li>
+            </ol>
+        </div>
+
+        <!-- 注意事项 -->
+        <div class="card">
+            <div class="card-title">注意事项</div>
+            <ul class="info-list">
+                <li>确保手机和电脑在同一网络</li>
+                <li>如无法连接请检查防火墙设置</li>
+            </ul>
+        </div>
+
+        <footer class="footer">
+            跨屏输入助手 © 2026
+        </footer>
+    </div>
+
+    <script src="/frontend/js/network.js?v=2"></script>
+    <script src="/frontend/js/desktop.js"></script>
+</body>
+</html>

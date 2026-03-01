@@ -1,0 +1,185 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check directory structure
+      run: |
+        pwd
+        dir -Recurse
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Cache Node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+          
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Install Node.js dependencies
+      run: |
+        cd electron
+        npm install
+        
+    - name: Verify assets
+      run: |
+        if (!(Test-Path "assets\icons\icon.ico")) {
+          Write-Error "Missing icon.ico file"
+          exit 1
+        }
+        if (!(Test-Path "assets\icons\app-icon.png")) {
+          Write-Error "Missing app-icon.png file"
+          exit 1
+        }
+        
+    - name: Build Python backend
+      run: |
+        cd backend
+        echo "Current directory: $(pwd)"
+        echo "Files in backend directory:"
+        dir
+        echo "Running PyInstaller..."
+        pyinstaller kpsr-backend.spec --clean --log-level=DEBUG
+        echo "PyInstaller completed. Checking results..."
+        dir dist
+        if (Test-Path "dist\kpsr-backend") {
+          dir dist\kpsr-backend
+        }
+        
+    - name: Verify backend build
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Checking for backend executable..."
+        if (Test-Path "backend\dist\kpsr-backend\kpsr-backend.exe") {
+          echo "Backend executable found at: backend\dist\kpsr-backend\kpsr-backend.exe"
+        } else {
+          echo "Backend executable not found. Listing directory structure:"
+          dir /s
+          Write-Error "Backend build failed"
+          exit 1
+        }
+        
+    - name: Build Electron app
+      run: |
+        cd electron
+        echo "Current directory: $(pwd)"
+        echo "Files in electron directory:"
+        dir
+        echo "Checking for package.json:"
+        if (Test-Path "package.json") {
+          echo "package.json found"
+        } else {
+          echo "package.json not found"
+        }
+        echo "Installing dependencies..."
+        npm install
+        echo "Running build:win..."
+        npm run build:win
+        echo "Build completed. Checking results..."
+        if (Test-Path "dist") {
+          echo "Files in dist directory:"
+          dir dist
+        } else {
+          echo "dist directory not found"
+        }
+        
+    - name: Verify Electron build
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Checking for Electron package..."
+        if (Test-Path "electron\dist\*.exe") {
+          echo "Electron package found at: electron\dist\*.exe"
+          dir electron\dist\*.exe
+        } else {
+          echo "Electron package not found. Listing directory structure:"
+          dir /s
+          Write-Error "Electron build failed"
+          exit 1
+        }
+        
+    - name: Create release package
+      shell: powershell
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Creating release directory..."
+        mkdir release
+        echo "Checking electron dist directory..."
+        if (Test-Path "electron\dist") {
+          echo "Files in electron\dist:"
+          dir electron\dist
+          echo "Copying electron packages..."
+          copy electron\dist\*.exe release\
+          echo "Files copied:"
+          dir release
+        } else {
+          echo "electron\dist directory not found"
+        }
+        echo "Checking backend dist directory..."
+        if (Test-Path "backend\dist\kpsr-backend") {
+          echo "Files in backend\dist\kpsr-backend:"
+          dir backend\dist\kpsr-backend
+          echo "Copying backend files..."
+          xcopy /E /I backend\dist\kpsr-backend\* release\kpsr-backend\
+        } else {
+          echo "backend\dist\kpsr-backend directory not found"
+        }
+        echo "Release directory contents:"
+        dir release -Recurse
+        
+    - name: List release files
+      run: |
+        dir release -Recurse
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: KPSR-Windows-EXE
+        path: release/
+        retention-days: 30
+        
+    - name: Create Release
+      if: github.event_name == 'release' && github.event.action == 'published'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/*
+        draft: false
+        prerelease: false

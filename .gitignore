@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+venv/
+env/
+ENV/
+
+# PyInstaller
+*.spec.bak
+*.manifest
+*.spec
+!backend/kpsr-backend.spec
+
+# Electron
+node_modules/
+dist/
+*.dmg
+*.dmg.blockmap
+*.exe
+*.AppImage
+*.deb
+*.rpm
+*.snap
+*.zip
+
+# 日志文件
+*.log
+logs/*.log
+
+# 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.temp
+/tmp/kpsr_port.txt
+
+# 激活码生成工具（包含密钥，不提交）
+tools/
+tools/activation_database.json
+tools/*.csv
+activation-tool/
+activation-tool/activation_database.json
+activation-tool/*.csv
+
+# 打包文件（平台特定，不提交）
+backend/dist/
+backend/build/
+electron/dist/
+electron/build/
+*.dmg
+*.exe
+*.AppImage
+
+# 用户数据（可选，如果不想提交用户配置）
+# backend/data/*.json
+# 但保留 .gitkeep

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPSR 跨屏输入 - 启动中</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f4fd 0%, #a8d4f5 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #2c3e50;
+    }
+    
+    .container {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .logo {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(44,62,80,0.2);
+      border-top-color: #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 30px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .status {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    
+    .status-text {
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+    
+    .error-container {
+      display: none;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 30px;
+      margin-top: 20px;
+      max-width: 400px;
+    }
+    
+    .error-container.show {
+      display: block;
+    }
+    
+    .error-title {
+      color: #ff6b6b;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    
+    .error-message {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .retry-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">KPSR</div>
+    <div class="subtitle">跨屏输入工具</div>
+    
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="status">正在启动服务...</div>
+      <div class="status-text" id="status-detail">初始化后端服务</div>
+    </div>
+    
+    <div class="error-container" id="error-container">
+      <div class="error-title">启动失败</div>
+      <div class="error-message" id="error-message">无法启动后端服务，请检查应用是否完整安装。</div>
+      <button class="retry-btn" onclick="retry()">重试</button>
+    </div>
+  </div>
+  
+  <script>
+    // 状态更新函数（由 Electron 主进程调用）
+    function updateStatus(message) {
+      document.getElementById('status-detail').textContent = message;
+    }
+    
+    // 显示错误
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-container').classList.add('show');
+      document.getElementById('error-message').textContent = message;
+    }
+    
+    // 重试 - 直接刷新页面重新加载
+    function retry() {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-container').classList.remove('show');
+      document.getElementById('status-detail').textContent = '正在重试...';
+      
+      // 刷新页面会触发主进程重新启动后端
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+  </script>
+</body>
+</html>

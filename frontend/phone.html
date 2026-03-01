@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-control" content="max-age=0">
+    <meta name="expires" content="0">
+    <meta name="pragma" content="no-cache">
+    <title>跨屏输入</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --input-bg: #f4f4f4;
+            --text-primary: #0d0d0d;
+            --accent-black: #1a1a1a;
+            --user-bubble-bg: #E6F3FF;
+            --primary-color: #007AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg-color);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-layout {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .header {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+        }
+
+        .menu-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .menu-button svg {
+            display: block;
+            width: 24px;
+            height: 24px;
+        }
+
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 16px;
+            bottom: 16px;
+            left: -70%;
+            width: 70%;
+            max-width: 260px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 24px 24px 0;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-content {
+            height: 100%;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .menu-item:hover {
+            background: var(--input-bg);
+            transform: translateX(4px);
+        }
+
+        .menu-item:active {
+            background: #e0e0e0;
+            transform: translateX(4px) scale(0.98);
+        }
+
+        .menu-item svg {
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .menu-item span {
+            font-size: 16px;
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-list {
+            width: 100%;
+            max-width: 768px;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-height: 100px;
+        }
+
+        #welcomeContainer {
+            margin-top: 20vh;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message-row.user { justify-content: flex-end; }
+
+        .bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .user .bubble { 
+            background: var(--user-bubble-bg); 
+            color: #000; 
+            border-bottom-right-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s;
+        }
+
+        .user .bubble:active {
+            background: #D0E8FF;
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .input-area {
+            padding: 20px 16px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(transparent, #fff 20%);
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 768px;
+            background: var(--input-bg);
+            border-radius: 24px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: flex-end;
+            transition: 0.2s border, 0.2s background;
+            border: 1px solid transparent;
+        }
+
+        .input-wrapper:focus-within {
+            background: #fff;
+            border-color: #ddd;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+
+        textarea {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 16px;
+            padding: 8px 4px;
+            resize: none;
+            max-height: 200px;
+            font-family: inherit;
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #e5e5e5;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .send-btn.active { background: var(--accent-black); transform: scale(1.05); }
+
+        .footer-tag { font-size: 12px; color: #8e8e8e; margin-top: 12px; }
+
+        /* 快捷键按钮栏 */
+        .shortcut-bar {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            min-height: 80px;
+            max-height: 160px;
+            overflow-y: auto;
+            transition: all 0.2s ease;
+        }
+
+        .shortcut-bar:empty {
+            min-height: 0;
+            padding: 0;
+            border: none;
+        }
+
+        /* 快捷键按钮 */
+        .shortcut-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: none;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+
+
+
+        .shortcut-button.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+        }
+
+        .shortcut-button-icon {
+            font-size: 20px;
+        }
+
+        .shortcut-button-name {
+            font-size: 10px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* ========== 现代化按钮动画系统 ========== */
+        
+        /* 基础按钮样式增强 */
+        .shortcut-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* 通用点击反馈 */
+        .shortcut-button:active {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+        
+        /* 按钮图标和文字的过渡效果 */
+        .shortcut-button-icon {
+            font-size: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .shortcut-button-name {
+            font-size: 10px;
+            text-align: center;
+            line-height: 1.2;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Single类型按钮 - 单次点击动画 */
+        @keyframes singleClick {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+            40% {
+                transform: scale(0.9);
+                box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+            }
+            80% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+        
+        .shortcut-button.btn-single-anim {
+            animation: singleClick 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* Single类型按钮样式 */
+        .button-type-single {
+            border: 1px solid transparent;
+        }
+        
+
+        
+        /* 确保Single类型按钮不会保持active状态 */
+        .button-type-single.active,
+        .button-type-single:active {
+            background: var(--input-bg) !important;
+            color: var(--text-primary) !important;
+            box-shadow: none !important;
+            transform: scale(1) !important;
+        }
+        
+        /* Multi类型按钮：确保不会保持active状态 */
+        .button-type-multi.active,
+        .button-type-multi:active {
+            background: var(--input-bg) !important;
+            color: var(--text-primary) !important;
+            box-shadow: none !important;
+            transform: scale(1) !important;
+        }
+        
+        /* Multi类型按钮 - 快速点击动画（和Single一样，但更快） */
+        .shortcut-button.btn-multi-anim {
+            animation: singleClick 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* Multi类型按钮样式 */
+        .button-type-multi {
+            border: 1px solid transparent;
+        }
+        
+
+        
+        /* Toggle类型按钮 - 激活动画 */
+        @keyframes toggleOn {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+            }
+        }
+        
+        .shortcut-button.btn-toggle-on-anim {
+            animation: toggleOn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Toggle类型按钮 - 取消激活动画 */
+        @keyframes toggleOff {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+            }
+            50% {
+                transform: scale(0.9);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+            }
+        }
+        
+        .shortcut-button.btn-toggle-off-anim {
+            animation: toggleOff 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Toggle类型按钮 - 激活状态脉冲效果 */
+        @keyframes togglePulse {
+            0%, 100% {
+                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.1);
+            }
+        }
+        
+        .button-type-toggle.active {
+            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+            animation: togglePulse 2s ease-in-out infinite;
+        }
+        
+        /* Toggle类型按钮样式 */
+        .button-type-toggle {
+            border: 1px solid transparent;
+        }
+        
+
+        
+        .button-type-toggle.active .shortcut-button-icon {
+            transform: scale(1.3) rotate(15deg);
+        }
+        
+        /* 动画进行时禁用默认过渡 */
+        .shortcut-button[class*="btn-"] {
+            transition: none !important;
+        }
+        
+        /* 按钮点击波纹效果 */
+        .shortcut-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .shortcut-button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Multi类型：点击次数指示器（已隐藏） */
+        .multi-click-indicator {
+            display: none;
+        }
+        
+        @keyframes indicatorPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            80% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Toggle类型：自动关闭倒计时条 */
+        .toggle-countdown-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+            border-radius: 0 0 12px 12px;
+            animation: toggleCountdown linear forwards;
+            z-index: 1;
+        }
+        
+        @keyframes toggleCountdown {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+
+        /* 设置界面遮罩层 */
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(4px);
+        }
+
+        .settings-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 2001;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .settings-overlay.active .settings-panel {
+            right: 0;
+        }
+
+        .settings-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .settings-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .settings-close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .settings-close-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .settings-close-btn:active {
+            transform: scale(0.95);
+        }
+
+        .settings-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 按钮列表样式 */
+        .button-list-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .button-list-section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .button-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .button-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .button-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .button-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--input-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .button-details {
+            flex: 1;
+        }
+
+        .button-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .button-type {
+            font-size: 14px;
+            color: #8e8e8e;
+            margin-top: 4px;
+        }
+
+        .button-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: #007AFF;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background: #FF3B30;
+            color: white;
+        }
+
+        /* 添加按钮样式 */
+        .add-button-container {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .add-button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px dashed #C6C6C8;
+            background: rgba(255, 255, 255, 0.9);
+            color: #007AFF;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .add-button:hover {
+            border-color: #007AFF;
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        /* 表单样式 */
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 24px;
+        }
+
+        .form-container h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #C6C6C8;
+            background: var(--input-bg);
+            font-size: 16px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        /* 配置区域样式 */
+        .config-section {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            background: rgba(0, 122, 255, 0.05);
+            border-left: 4px solid #007AFF;
+        }
+
+        .config-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .multi-action-item,
+        .toggle-action-item {
+            margin-bottom: 12px;
+        }
+
+        .multi-action-item input,
+        .toggle-action-item input {
+            margin-top: 4px;
+        }
+
+        .add-action-button {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #007AFF;
+            background: white;
+            color: #007AFF;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .add-action-button:hover {
+            background: #007AFF;
+            color: white;
+        }
+
+        /* 表单按钮 */
+        .form-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .form-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cancel-button {
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        .cancel-button:hover {
+            background: #8E8E93;
+            color: white;
+        }
+
+        .save-button {
+            background: #007AFF;
+            color: white;
+        }
+
+        .save-button:hover {
+            background: #0056CC;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #8e8e8e;
+            padding: 40px 20px;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .settings-panel {
+                max-width: 100%;
+            }
+            
+            .settings-content {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3>设置</h3>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-item" onclick="goToShortcutSettings()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                    </svg>
+                    <span>键盘快捷键</span>
+                </div>
+                <div class="menu-item" onclick="goToMouseSettings()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5.5 15.5l1.5 1.5 2.5-2.5"></path>
+                        <path d="M11.5 12.5l1.5 1.5 2.5-2.5"></path>
+                        <path d="M17.5 9.5l1.5 1.5 2.5-2.5"></path>
+                        <path d="M2 12h4l2-2 4 4 4-4 2 2h4"></path>
+                    </svg>
+                    <span>鼠标按键</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置界面遮罩层 -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h3>键盘快捷键设置</h3>
+                <button class="settings-close-btn" onclick="closeSettings()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-content" id="settingsContent">
+                <!-- 设置内容将通过 JavaScript 动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-layout" id="scrollTarget">
+        <div class="header">
+            <button id="menuBtn" class="menu-button">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="6" x2="20" y2="6"></line>
+                    <line x1="4" y1="12" x2="20" y2="12"></line>
+                    <line x1="4" y1="18" x2="20" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div id="welcomeContainer">
+            <h2>跨屏输入</h2>
+            <p style="color: #8e8e8e; margin-top: 10px;">手机发送，电脑接收</p>
+        </div>
+        <div class="message-list" id="messageList"></div>
+    </div>
+
+    <!-- 快捷键按钮栏 -->
+    <div class="shortcut-bar" id="shortcutBar">
+        <!-- 按钮将通过 JavaScript 动态生成 -->
+    </div>
+
+    <!-- 鼠标按键映射在后台运行，不在此显示 -->
+
+    <div class="input-area">
+        <form id="sendForm" class="input-wrapper">
+            <textarea id="userInput" placeholder="输入消息..." rows="1"></textarea>
+            <button type="submit" id="sendBtn" class="send-btn" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </form>
+        <div class="footer-tag">点击消息气泡可复制</div>
+    </div>
+
+    <!-- 加载模块化 JavaScript 文件 -->
+    <script src="/frontend/js/log_capture.js?v=2"></script>
+    <script src="/frontend/js/constants.js?v=2"></script>
+    <script src="/frontend/js/utils.js?v=2"></script>
+    <script src="/frontend/js/network.js?v=2"></script>
+    <script src="/frontend/js/api.js?v=2"></script>
+    <script src="/frontend/js/ui_components.js?v=2"></script>
+    <script src="/frontend/js/device_manager.js?v=2"></script>
+    <script src="/frontend/js/settings_manager.js?v=2"></script>
+    <script src="/frontend/js/shortcut_actions.js?v=2"></script>
+    <script src="/frontend/js/main_new.js?v=2"></script>
+
+</body>
+</html>

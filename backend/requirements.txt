@@ -1,0 +1,32 @@
+# Python依赖包
+
+# FastAPI框架
+fastapi
+uvicorn[standard]
+
+# 剪贴板操作
+pyperclip
+
+# 键盘快捷键执行
+pynput>=1.7.6
+
+# 跨域支持
+fastapi-cors
+
+# Windows特定依赖
+pywin32>=227
+
+# 图像处理（截图功能）
+Pillow>=9.0.0
+
+# 系统进程管理
+psutil>=5.8.0
+
+# 文件上传支持
+python-multipart
+
+# 配置管理（Pydantic V2需要）
+pydantic-settings
+
+# 类型提示扩展
+typing_extensions

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>遮罩层演示</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --input-bg: #f4f4f4;
+            --text-primary: #0d0d0d;
+            --accent-black: #1a1a1a;
+            --user-bubble-bg: #E6F3FF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg-color);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-layout {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .header {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+        }
+
+        .menu-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .menu-button svg {
+            display: block;
+            width: 24px;
+            height: 24px;
+        }
+
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 16px;
+            bottom: 16px;
+            left: -70%;
+            width: 70%;
+            max-width: 260px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 24px 24px 0;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-content {
+            height: 100%;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .menu-item:hover {
+            background: var(--input-bg);
+            transform: translateX(4px);
+        }
+
+        .menu-item:active {
+            background: #e0e0e0;
+            transform: translateX(4px) scale(0.98);
+        }
+
+        .menu-item svg {
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .menu-item span {
+            font-size: 16px;
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .main-content h1 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .main-content p {
+            font-size: 16px;
+            color: #8e8e8e;
+            margin-bottom: 32px;
+        }
+
+        .demo-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            background: var(--accent-black);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .demo-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3>设置</h3>
+            </div>
+            <div class="sidebar-menu">
+                <!-- 侧边栏菜单 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-layout" id="scrollTarget">
+        <div class="header">
+            <button id="menuBtn" class="menu-button">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="6" x2="20" y2="6"></line>
+                    <line x1="4" y1="12" x2="20" y2="12"></line>
+                    <line x1="4" y1="18" x2="20" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="main-content">
+            <h1>遮罩层演示</h1>
+            <p>点击左上角的菜单按钮查看遮罩层效果</p>
+            <button class="demo-button" onclick="toggleSidebar()">打开侧边栏</button>
+        </div>
+    </div>
+
+<script>
+    console.log('脚本开始执行');
+    
+    const DOM = {
+        menuBtn: document.getElementById('menuBtn'),
+        sidebar: document.getElementById('sidebar'),
+        overlay: document.getElementById('overlay')
+    };
+
+    console.log('DOM元素:', DOM);
+
+    // Sidebar functionality
+    function toggleSidebar() {
+        DOM.sidebar.classList.toggle('active');
+        DOM.overlay.classList.toggle('active');
+        document.body.style.overflow = DOM.sidebar.classList.contains('active') ? 'hidden' : '';
+    }
+
+    function closeSidebar() {
+        DOM.sidebar.classList.remove('active');
+        DOM.overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Event listeners for sidebar
+    if (DOM.menuBtn) {
+        DOM.menuBtn.addEventListener('click', toggleSidebar);
+    }
+
+    if (DOM.overlay) {
+        DOM.overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Menu item click events
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const text = this.querySelector('span').textContent;
+            console.log('Menu item clicked:', text);
+            
+            // Close sidebar after menu item click
+            closeSidebar();
+            
+            // Add your menu item functionality here
+        });
+    });
+    
+    console.log('脚本初始化完成');
+    console.log('侧边栏功能已初始化');
+</script>
+</body>
+</html>

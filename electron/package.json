@@ -1,0 +1,85 @@
+{
+  "name": "kpsr",
+  "version": "1.0.0",
+  "description": "跨屏输入工具 - 手机控制电脑的剪贴板、快捷键和鼠标",
+  "main": "main.js",
+  "author": "KPSR",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "dist": "npm run build:win"
+  },
+  "dependencies": {
+    "tree-kill": "^1.2.2"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.kpsr.crossinput",
+    "productName": "跨屏输入",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "loading.html",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist/kpsr-backend",
+        "to": "kpsr-backend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../frontend",
+        "to": "frontend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../assets/icons",
+        "to": "icons",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "../assets/icons/installer-icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "../assets/icons/installer-icon.ico",
+      "uninstallerIcon": "../assets/icons/installer-icon.ico",
+      "installerHeaderIcon": "../assets/icons/installer-icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "跨屏输入"
+    }
+  }
+}
