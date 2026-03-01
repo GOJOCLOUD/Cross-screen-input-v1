@@ -71,8 +71,8 @@ def get_hotspot_ip() -> Optional[str]:
 
 
 def get_server_port() -> int:
-    """获取服务器当前端口（固定端口19653）"""
-    return 19653
+    """获取服务器当前端口（固定端口7593）"""
+    return 7593
 
 
 @router.get("/access-info")
@@ -115,10 +115,10 @@ async def get_access_info() -> Dict[str, Any]:
         return {
             "network_ip": None,
             "hotspot_ip": None,  # 保持向后兼容
-            "port": 19653,
-            "phone_url": "http://localhost:19653/phone",
-            "qrcode_url": "http://localhost:19653/phone",
-            "localhost_url": "http://localhost:19653",
+            "port": 7593,
+            "phone_url": "http://localhost:7593/phone",
+            "qrcode_url": "http://localhost:7593/phone",
+            "localhost_url": "http://localhost:7593",
             "error": str(e)
         }
 
@@ -171,7 +171,7 @@ async def get_status() -> Dict[str, Any]:
         app_logger.error(f"获取状态信息失败: {e}", "desktop_api")
         return {
             "server_running": False,
-            "port": 19653,
+            "port": 7593,
             "network_connected": False,
             "network_ip": None,
             "hotspot_connected": False,  # 保持向后兼容

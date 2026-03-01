@@ -4252,7 +4252,7 @@
     "timestamp": "2026-01-28T11:36:48.833133",
     "level": "INFO",
     "source": "port_manager",
-    "message": "端口 19653 未被占用",
+    "message": "端口 7593 未被占用",
     "extra": {}
   },
   {

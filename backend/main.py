@@ -20,7 +20,7 @@ from fastapi.responses import HTMLResponse, Response, JSONResponse
 from pydantic import BaseModel
 
 # 固定端口
-FIXED_PORT = 19653
+FIXED_PORT = 7593
 
 # 创建FastAPI应用实例
 app = FastAPI(
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     # 检测是否在打包环境中运行
     is_frozen = getattr(sys, 'frozen', False)
     
-    # 使用固定端口 19653，启动前自动清理占用该端口的进程
+    # 使用固定端口 7593，启动前自动清理占用该端口的进程
     port = FIXED_PORT
     
     # 清理占用端口的进程
