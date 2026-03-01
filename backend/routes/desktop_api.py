@@ -37,25 +37,17 @@ def get_private_ip() -> Optional[str]:
         system = platform.system()
         private_ips = []
         
-        if system == 'Windows':
-            # Windows使用ipconfig命令
-            result = subprocess.run(['ipconfig'], capture_output=True, text=True)
-            # 查找私有网络IP地址
-            private_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
-            private_ips.extend(re.findall(r'IPv4 Address[^\d]*(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
-            private_ips.extend(re.findall(r'IPv4 Address[^\d]*(192\.168\.\d+\.\d+)', result.stdout))
-            # 如果没有找到，尝试其他格式
-            if not private_ips:
-                private_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
-                private_ips.extend(re.findall(r'(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
-                private_ips.extend(re.findall(r'(192\.168\.\d+\.\d+)', result.stdout))
-        else:
-            # macOS/Linux使用ifconfig命令
-            result = subprocess.run(['ifconfig'], capture_output=True, text=True)
-            # 查找私有网络IP地址
-            private_ips = re.findall(r'inet\s+(10\.\d+\.\d+\.\d+)', result.stdout)
-            private_ips.extend(re.findall(r'inet\s+(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
-            private_ips.extend(re.findall(r'inet\s+(192\.168\.\d+\.\d+)', result.stdout))
+        # Windows使用ipconfig命令
+        result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+        # 查找私有网络IP地址
+        private_ips = re.findall(r'IPv4 Address[^\d]*(10\.\d+\.\d+\.\d+)', result.stdout)
+        private_ips.extend(re.findall(r'IPv4 Address[^\d]*(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+        private_ips.extend(re.findall(r'IPv4 Address[^\d]*(192\.168\.\d+\.\d+)', result.stdout))
+        # 如果没有找到，尝试其他格式
+        if not private_ips:
+            private_ips = re.findall(r'(10\.\d+\.\d+\.\d+)', result.stdout)
+            private_ips.extend(re.findall(r'(172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)', result.stdout))
+            private_ips.extend(re.findall(r'(192\.168\.\d+\.\d+)', result.stdout))
         
         if private_ips:
             return private_ips[0]  # 返回第一个找到的私有网络IP

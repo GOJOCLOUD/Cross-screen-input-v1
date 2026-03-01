@@ -795,19 +795,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             // 渲染按钮列表
             let html = `
                 <!-- 平台提示 -->
-                ${platformInfo.platform === 'macos' ? `
-                    <div class="platform-notice" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
-                        <strong>💡 平台提示：</strong>检测到您使用的是 macOS 系统。在 macOS 上，<code>ctrl</code> 会自动映射到 <code>cmd</code>（Command键）。例如：输入 <code>ctrl+c</code> 会执行 <code>Cmd+C</code>。
-                    </div>
-                ` : ''}
                 ${platformInfo.platform === 'windows' ? `
                     <div class="platform-notice" style="background: #d1ecf1; border: 1px solid #0c5460; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
                         <strong>💡 平台提示：</strong>检测到您使用的是 Windows 系统。在 Windows 上，<code>ctrl</code> 映射到 Control 键。
-                    </div>
-                ` : ''}
-                ${platformInfo.platform === 'linux' ? `
-                    <div class="platform-notice" style="background: #d1ecf1; border: 1px solid #0c5460; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
-                        <strong>💡 平台提示：</strong>检测到您使用的是 Linux 系统。在 Linux 上，<code>ctrl</code> 映射到 Control 键。
                     </div>
                 ` : ''}
                 
@@ -909,19 +899,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             let html = `
                 <!-- 平台提示 -->
-                ${platformInfo.platform === 'macos' ? `
-                    <div class="platform-notice" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
-                        <strong>💡 平台提示：</strong>检测到您使用的是 macOS 系统。在 macOS 上，<code>ctrl</code> 会自动映射到 <code>cmd</code>（Command键）。
-                    </div>
-                ` : ''}
                 ${platformInfo.platform === 'windows' ? `
                     <div class="platform-notice" style="background: #d1ecf1; border: 1px solid #0c5460; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
                         <strong>💡 平台提示：</strong>检测到您使用的是 Windows 系统。在 Windows 上，<code>ctrl</code> 映射到 Control 键。
-                    </div>
-                ` : ''}
-                ${platformInfo.platform === 'linux' ? `
-                    <div class="platform-notice" style="background: #d1ecf1; border: 1px solid #0c5460; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
-                        <strong>💡 平台提示：</strong>检测到您使用的是 Linux 系统。在 Linux 上，<code>ctrl</code> 映射到 Control 键。
                     </div>
                 ` : ''}
                 
@@ -1216,14 +1196,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <input type="text" id="mouseShortcut" placeholder="例如：ctrl+v 或 launchpad">
                 <div style="font-size: 12px; color: #8e8e8e; margin-top: 4px;">
                     <b>键盘快捷键：</b>ctrl+v（粘贴）、ctrl+c（复制）、ctrl+z（撤销）<br>
-                    <b>macOS 系统命令：</b><br>
-                    • <code>launchpad</code> - 启动台<br>
-                    • <code>mission_control</code> - 调度中心<br>
-                    • <code>spotlight</code> - Spotlight 搜索<br>
-                    • <code>screenshot</code> - 截图<br>
-                    • <code>volume_up/down/mute</code> - 音量控制<br>
-                    • <code>lock_screen</code> - 锁定屏幕<br>
-                    • <code>show_desktop</code> - 显示桌面
+                    <b>Windows 系统功能：</b><br>
+                    • <code>win+d</code> - 显示桌面<br>
+                    • <code>win+e</code> - 打开资源管理器<br>
+                    • <code>win+l</code> - 锁定屏幕<br>
+                    • <code>alt+tab</code> - 切换窗口<br>
+                    • <code>ctrl+alt+delete</code> - 任务管理器
                 </div>
             </div>
 

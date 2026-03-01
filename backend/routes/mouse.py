@@ -281,31 +281,11 @@ async def get_platform_info():
             'double_click': 'double_left',
             'scroll_up': 'scroll_up',
             'scroll_down': 'scroll_down',
-        },
-        'macos': {
-            'left_click': 'left',
-            'right_click': 'right',
-            'middle_click': 'middle',
-            'back_button': 'back',
-            'forward_button': 'forward',
-            'double_click': 'double_left',
-            'scroll_up': 'scroll_up',
-            'scroll_down': 'scroll_down',
-        },
-        'linux': {
-            'left_click': 'left',
-            'right_click': 'right',
-            'middle_click': 'middle',
-            'back_button': 'back',
-            'forward_button': 'forward',
-            'double_click': 'double_left',
-            'scroll_up': 'scroll_up',
-            'scroll_down': 'scroll_down',
         }
     }
     
     return {
         'platform': platform,
         'suggestions': suggestions.get(platform, {}),
-        'note': '在 macOS 上，ctrl 会自动映射到 cmd（Command键）。如果需要真正的 Control 键，请使用 ctrl_l 或 ctrl_r。'
+        'note': 'Windows平台鼠标操作说明：支持左键、右键、中键和侧键操作。'
     }

@@ -26,7 +26,7 @@ CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "
 class NetworkConfig(BaseModel):
     """网络配置模型"""
     # 访问控制模式
-    access_mode: str = "private"  # "private" (私有网络), "lan" (局域网), "all" (所有网络)
+    access_mode: str = "private"  # "private" (私有网络), "campus" (校园网), "lan" (局域网), "all" (所有网络)
     
     # 身份验证设置
     auth_enabled: bool = False  # 是否启用身份验证
@@ -102,6 +102,9 @@ class NetworkManager:
         if self.config.access_mode == "all":
             return True
         
+        if self.config.access_mode == "campus":
+            return self.is_campus_ip(ip)
+        
         return self.is_private_ip(ip)
     
     def is_private_ip(self, ip: str) -> bool:
@@ -126,6 +129,72 @@ class NetworkManager:
             
             # 检查 192.168.0.0/16（私有网络）
             if parts[0] == '192' and parts[1] == '168':
+                return True
+            
+            return False
+        except:
+            return False
+    
+    def is_campus_ip(self, ip: str) -> bool:
+        """检查是否为校园网IP"""
+        # localhost
+        if ip in ['127.0.0.1', 'localhost']:
+            return True
+        
+        # 私有IP也允许访问（覆盖热点网络）
+        if self.is_private_ip(ip):
+            return True
+        
+        # 解析IP
+        try:
+            parts = ip.split('.')
+            if len(parts) != 4:
+                return False
+            
+            first_octet = int(parts[0])
+            second_octet = int(parts[1])
+            
+            # 常见校园网IP范围（可根据实际情况调整）
+            # 中国教育网常见IP段
+            if first_octet == 202:  # 202.x.x.x
+                return True
+            if first_octet == 211:  # 211.x.x.x
+                return True
+            if first_octet == 218:  # 218.x.x.x
+                return True
+            if first_octet == 219:  # 219.x.x.x
+                return True
+            if first_octet == 222:  # 222.x.x.x
+                return True
+            if first_octet == 223:  # 223.x.x.x
+                return True
+            
+            # 特定校园网段
+            if first_octet == 58 and 192 <= second_octet <= 255:  # 58.192.x.x - 58.255.x.x
+                return True
+            if first_octet == 59 and 64 <= second_octet <= 127:   # 59.64.x.x - 59.127.x.x
+                return True
+            if first_octet == 115 and 0 <= second_octet <= 255:  # 115.x.x.x
+                return True
+            if first_octet == 116 and 0 <= second_octet <= 255:  # 116.x.x.x
+                return True
+            if first_octet == 117 and 0 <= second_octet <= 255:  # 117.x.x.x
+                return True
+            if first_octet == 118 and 0 <= second_octet <= 255:  # 118.x.x.x
+                return True
+            if first_octet == 119 and 0 <= second_octet <= 255:  # 119.x.x.x
+                return True
+            if first_octet == 120 and 0 <= second_octet <= 255:  # 120.x.x.x
+                return True
+            if first_octet == 121 and 0 <= second_octet <= 255:  # 121.x.x.x
+                return True
+            if first_octet == 122 and 0 <= second_octet <= 255:  # 122.x.x.x
+                return True
+            if first_octet == 123 and 0 <= second_octet <= 255:  # 123.x.x.x
+                return True
+            if first_octet == 124 and 0 <= second_octet <= 255:  # 124.x.x.x
+                return True
+            if first_octet == 125 and 0 <= second_octet <= 255:  # 125.x.x.x
                 return True
             
             return False
@@ -199,6 +268,7 @@ class NetworkManager:
         """获取访问模式描述"""
         descriptions = {
             "private": "仅私有网络访问 (10.x.x.x, 172.16.x.x-172.31.x.x, 192.168.x.x)",
+            "campus": "校园网访问 (包含私有网络和常见校园网IP段)",
             "lan": "局域网访问 (包含所有私有网络范围)",
             "all": "所有网络访问 (不限制IP地址)"
         }
@@ -266,7 +336,7 @@ class NetworkManager:
 
     def set_access_mode(self, mode: str) -> bool:
         """设置访问模式"""
-        if mode in ["private", "lan", "all"]:
+        if mode in ["private", "campus", "lan", "all"]:
             self.config.access_mode = mode
             # 根据访问模式更新允许的来源
             self.update_allowed_origins()
@@ -281,6 +351,96 @@ class NetworkManager:
         if self.config.access_mode == "all":
             # 所有模式：允许所有来源，但需要通过其他安全机制保护
             self.config.allowed_origins = ["*"]
+        elif self.config.access_mode == "campus":
+            # 校园网模式：允许私有网络IP、localhost和常见校园网IP
+            self.config.allowed_origins = [
+                "http://localhost:*",
+                "https://localhost:*",
+                "http://127.0.0.1:*",
+                "https://127.0.0.1:*",
+                "http://0.0.0.0:*",
+                "https://0.0.0.0:*"
+            ]
+            # 添加私有网络IP模式
+            self.config.allowed_origins.extend([
+                "http://10.*",
+                "https://10.*",
+                "http://172.16.*",
+                "https://172.16.*",
+                "http://172.17.*",
+                "https://172.17.*",
+                "http://172.18.*",
+                "https://172.18.*",
+                "http://172.19.*",
+                "https://172.19.*",
+                "http://172.20.*",
+                "https://172.20.*",
+                "http://172.21.*",
+                "https://172.21.*",
+                "http://172.22.*",
+                "https://172.22.*",
+                "http://172.23.*",
+                "https://172.23.*",
+                "http://172.24.*",
+                "https://172.24.*",
+                "http://172.25.*",
+                "https://172.25.*",
+                "http://172.26.*",
+                "https://172.26.*",
+                "http://172.27.*",
+                "https://172.27.*",
+                "http://172.28.*",
+                "https://172.28.*",
+                "http://172.29.*",
+                "https://172.29.*",
+                "http://172.30.*",
+                "https://172.30.*",
+                "http://172.31.*",
+                "https://172.31.*",
+                "http://192.168.*",
+                "https://192.168.*"
+            ])
+            # 添加常见校园网IP模式
+            self.config.allowed_origins.extend([
+                "http://202.*",
+                "https://202.*",
+                "http://211.*",
+                "https://211.*",
+                "http://218.*",
+                "https://218.*",
+                "http://219.*",
+                "https://219.*",
+                "http://222.*",
+                "https://222.*",
+                "http://223.*",
+                "https://223.*",
+                "http://58.*",
+                "https://58.*",
+                "http://59.*",
+                "https://59.*",
+                "http://115.*",
+                "https://115.*",
+                "http://116.*",
+                "https://116.*",
+                "http://117.*",
+                "https://117.*",
+                "http://118.*",
+                "https://118.*",
+                "http://119.*",
+                "https://119.*",
+                "http://120.*",
+                "https://120.*",
+                "http://121.*",
+                "https://121.*",
+                "http://122.*",
+                "https://122.*",
+                "http://123.*",
+                "https://123.*",
+                "http://124.*",
+                "https://124.*",
+                "http://125.*",
+                "https://125.*"
+            ])
         elif self.config.access_mode == "lan":
             # 局域网模式：允许私有网络IP和localhost
             self.config.allowed_origins = [

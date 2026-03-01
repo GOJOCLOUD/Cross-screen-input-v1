@@ -65,6 +65,28 @@
             </div>
         </div>
 
+        <!-- 网络配置 -->
+        <div class="card">
+            <div class="card-title">网络配置</div>
+            <div class="network-config">
+                <div class="form-group">
+                    <label for="accessMode">访问模式</label>
+                    <select id="accessMode" class="select">
+                        <option value="private">私有网络 (仅限热点/局域网)</option>
+                        <option value="campus">校园网 (支持校园网IP)</option>
+                        <option value="lan">局域网 (所有私有网络)</option>
+                        <option value="all">所有网络 (不限制)</option>
+                    </select>
+                    <div class="form-help" id="accessModeDescription">
+                        当前模式: 私有网络访问
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="saveNetworkConfig" class="button">保存配置</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 设备管理 -->
         <div class="card">
             <div class="card-title">设备管理</div>

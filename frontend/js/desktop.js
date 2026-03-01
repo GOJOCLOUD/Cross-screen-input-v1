@@ -324,6 +324,7 @@ document.addEventListener('visibilitychange', () => {
         // 页面重新可见时刷新状态
         loadStatus();
         loadAccessInfo();
+        loadNetworkConfig();
         startRefresh();
     }
 });
@@ -352,7 +353,139 @@ function startRefresh() {
         loadStatus();
         loadAccessInfo();
         loadDevices();
+        loadNetworkConfig();
     }, 5000);
 }
+
+// 网络配置相关功能
+async function loadNetworkConfig() {
+    try {
+        const res = await window.networkRequest.get('/api/network/status');
+        const data = res.data;
+        
+        // 设置当前访问模式
+        const accessModeSelect = document.getElementById('accessMode');
+        if (accessModeSelect && data.access_mode) {
+            accessModeSelect.value = data.access_mode;
+        }
+        
+        // 更新描述
+        updateAccessModeDescription(data.access_mode);
+        
+    } catch (e) {
+        console.error('加载网络配置失败:', e);
+    }
+}
+
+function updateAccessModeDescription(mode) {
+    const descriptions = {
+        'private': '私有网络访问 (仅限10.x.x.x, 172.16.x.x-172.31.x.x, 192.168.x.x)',
+        'campus': '校园网访问 (包含私有网络和常见校园网IP段)',
+        'lan': '局域网访问 (包含所有私有网络范围)',
+        'all': '所有网络访问 (不限制IP地址)'
+    };
+    
+    const descElement = document.getElementById('accessModeDescription');
+    if (descElement) {
+        descElement.textContent = descriptions[mode] || '未知模式';
+    }
+}
+
+async function saveNetworkConfig() {
+    try {
+        const accessMode = document.getElementById('accessMode').value;
+        
+        const res = await window.networkRequest.post('/api/network/access-mode', {
+            mode: accessMode
+        });
+        
+        if (res.status === 'success') {
+            // 更新描述
+            updateAccessModeDescription(accessMode);
+            
+            // 显示成功消息
+            showMessage('网络配置已保存', 'success');
+        } else {
+            showMessage('保存网络配置失败', 'error');
+        }
+        
+    } catch (e) {
+        console.error('保存网络配置失败:', e);
+        showMessage('保存网络配置失败: ' + e.message, 'error');
+    }
+}
+
+function showMessage(message, type = 'info') {
+    // 创建消息元素
+    const messageEl = document.createElement('div');
+    messageEl.className = `message message-${type}`;
+    messageEl.textContent = message;
+    
+    // 添加样式
+    messageEl.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+        color: white;
+        font-size: 14px;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+    `;
+    
+    // 设置背景色
+    if (type === 'success') {
+        messageEl.style.backgroundColor = '#4CAF50';
+    } else if (type === 'error') {
+        messageEl.style.backgroundColor = '#F44336';
+    } else {
+        messageEl.style.backgroundColor = '#2196F3';
+    }
+    
+    // 添加到页面
+    document.body.appendChild(messageEl);
+    
+    // 显示动画
+    setTimeout(() => {
+        messageEl.style.opacity = '1';
+        messageEl.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        messageEl.style.opacity = '0';
+        messageEl.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            if (messageEl.parentNode) {
+                messageEl.parentNode.removeChild(messageEl);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// 初始化网络配置
+document.addEventListener('DOMContentLoaded', () => {
+    // 加载网络配置
+    loadNetworkConfig();
+    
+    // 绑定保存按钮事件
+    const saveBtn = document.getElementById('saveNetworkConfig');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveNetworkConfig);
+    }
+    
+    // 绑定访问模式变更事件
+    const accessModeSelect = document.getElementById('accessMode');
+    if (accessModeSelect) {
+        accessModeSelect.addEventListener('change', (e) => {
+            updateAccessModeDescription(e.target.value);
+        });
+    }
+});
 
 

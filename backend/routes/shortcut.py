@@ -43,8 +43,6 @@ BASE_KEY_MAP = {
     'backspace': Key.backspace,
     'delete': Key.delete,
     'del': Key.delete,  # 别名
-    'insert': Key.insert,
-    'ins': Key.insert,  # 别名
     
     # 导航键
     'home': Key.home,
@@ -141,7 +139,7 @@ class ShortcutResponse(BaseModel):
 def parse_shortcut(shortcut_str):
     """
     解析 "ctrl+v" 格式的快捷键（小写格式）
-    根据平台自动映射：Windows上 ctrl->Control，macOS上 ctrl->Command
+    根据平台自动映射：Windows上 ctrl->Control
     返回 pynput 的键对象列表
     """
     # 先转换为小写并去除空格
@@ -160,7 +158,13 @@ def parse_shortcut(shortcut_str):
         
         # 1. 先查映射表
         if part in KEY_MAP:
-            keys.append(KEY_MAP[part])
+            try:
+                key_map = getattr(Key, part, None)
+                if key_map:
+                    keys.append(key_map)
+            except AttributeError:
+                # Python 3.9 兼容性问题，跳过无效键
+                pass
         # 2. 功能键（f1-f20）
         elif part.startswith('f') and len(part) > 1 and part[1:].isdigit():
             f_num = part[1:]
@@ -277,29 +281,11 @@ async def get_platform_info():
             'undo': 'ctrl+z',
             'redo': 'ctrl+y',
             'save': 'ctrl+s',
-        },
-        'macos': {
-            'copy': 'cmd+c',  # 注意：macOS 使用 cmd
-            'paste': 'cmd+v',
-            'cut': 'cmd+x',
-            'select_all': 'cmd+a',
-            'undo': 'cmd+z',
-            'redo': 'cmd+shift+z',
-            'save': 'cmd+s',
-        },
-        'linux': {
-            'copy': 'ctrl+c',
-            'paste': 'ctrl+v',
-            'cut': 'ctrl+x',
-            'select_all': 'ctrl+a',
-            'undo': 'ctrl+z',
-            'redo': 'ctrl+y',
-            'save': 'ctrl+s',
         }
     }
     
     return {
         'platform': platform,
         'suggestions': suggestions.get(platform, {}),
-        'note': '在 macOS 上，ctrl 会自动映射到 cmd（Command键）。如果需要真正的 Control 键，请使用 ctrl_l 或 ctrl_r。'
+        'note': 'Windows平台快捷键说明：ctrl对应Control键，cmd对应Windows键。'
     }

@@ -113,10 +113,10 @@ async def get_network_status(request: Request):
 async def set_access_mode(request: AccessModeRequest):
     """设置网络访问模式"""
     try:
-        if request.mode not in ["private", "lan", "all"]:
+        if request.mode not in ["private", "campus", "lan", "all"]:
             raise HTTPException(
                 status_code=400,
-                detail="无效的访问模式，支持: private, lan, all"
+                detail="无效的访问模式，支持: private, campus, lan, all"
             )
         
         success = network_manager.set_access_mode(request.mode)

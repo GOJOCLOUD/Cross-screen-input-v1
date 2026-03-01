@@ -1,4 +1,4 @@
-# KPSR 跨屏输入工具 (Windows版)
+# KPSR 跨屏输入工具
 
 手机控制电脑的剪贴板、快捷键和鼠标操作。
 
@@ -19,7 +19,7 @@
 ## 项目结构
 
 ```
-KPSR_副本2/
+KPSR/
 ├── backend/          # Python 后端
 │   ├── main.py      # FastAPI 主应用
 │   ├── routes/      # API 路由
