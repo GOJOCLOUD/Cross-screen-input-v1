@@ -77,7 +77,7 @@ if os.path.exists(FRONTEND_DIR):
     app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
 # 导入路由模块
-from routes import clipboard, shortcut, button_config, logs, monitor, mouse, mouse_config, mouse_listener, desktop_api
+from routes import clipboard, shortcut, button_config, logs, monitor, mouse, mouse_config, mouse_listener, desktop_api, machine_id
 
 # 注册路由
 app.include_router(clipboard.router, prefix="/api/clipboard", tags=["clipboard"])
@@ -89,6 +89,7 @@ app.include_router(mouse.router, prefix="/api/mouse", tags=["mouse"])
 app.include_router(mouse_config.router, prefix="/api/mouse-config", tags=["mouse-config"])
 app.include_router(mouse_listener.router, prefix="/api/mouse-listener", tags=["mouse-listener"])
 app.include_router(desktop_api.router, prefix="/api/desktop", tags=["desktop"])
+app.include_router(machine_id.router, prefix="/api/machine-id", tags=["machine-id"])
 
 # 根路径返回desktop.html（仅限本机访问）
 @app.get("/", response_class=HTMLResponse)
@@ -310,6 +311,9 @@ if __name__ == "__main__":
     print("  - PUT /api/button-config/update/{id} : 更新按钮")
     print("  - DELETE /api/button-config/delete/{id} : 删除按钮")
     print("  - GET /api/button-config/get/{id} : 获取单个按钮")
+    print("  - GET /api/machine-id/machine-code : 获取机器码")
+    print("  - GET /api/machine-id/hardware-info : 获取硬件信息")
+    print("  - POST /api/machine-id/verify-machine-code : 验证机器码")
     print("  - GET /health        : 健康检查")
     print("=" * 60)
     
