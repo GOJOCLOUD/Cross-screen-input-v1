@@ -1,0 +1,30 @@
+{
+  "buttons": [
+    {
+      "name": "复制",
+      "icon": "😁",
+      "type": "single",
+      "shortcut": "ctrl+c",
+      "id": "btn_1772852365945_9812",
+      "created_at": "2026-03-07T10:59:25.945870",
+      "updated_at": "2026-03-07T11:03:12.886785",
+      "order": 1772852365945
+    },
+    {
+      "name": "截图",
+      "icon": "😂",
+      "type": "toggle",
+      "toggleActions": {
+        "activate": "prtsc",
+        "deactivate": "esc"
+      },
+      "autoCloseDuration": 3,
+      "id": "btn_1772852476441_3232",
+      "created_at": "2026-03-07T11:01:16.441330",
+      "updated_at": "2026-03-07T11:01:16.441330",
+      "order": 1772852476441
+    }
+  ],
+  "version": "1.0",
+  "last_updated": "2026-03-07T11:03:12.886785"
+}
