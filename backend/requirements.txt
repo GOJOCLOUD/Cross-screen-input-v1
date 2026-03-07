@@ -28,5 +28,8 @@ pydantic-settings
 # 类型提示扩展
 typing_extensions
 
+# 加密库（激活系统）
+cryptography>=41.0.0
+
 # Windows特定依赖
 pywin32

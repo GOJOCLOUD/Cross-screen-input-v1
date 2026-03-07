@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软件激活 - KPSR 跨屏输入</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .machine-code {
+            background: #e9ecef;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin-top: 10px;
+            text-align: center;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-activate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-activate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-deactivate {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-deactivate:hover {
+            background: #c82333;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .activation-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .activation-info h4 {
+            color: #004085;
+            margin-bottom: 10px;
+        }
+
+        .activation-info p {
+            color: #004085;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 软件激活</h1>
+        
+        <div class="info-box">
+            <h3>📱 机器码</h3>
+            <p>您的机器唯一标识码，请将此码发送给软件提供商获取激活码：</p>
+            <div class="machine-code" id="machineCode">加载中...</div>
+        </div>
+
+        <div class="form-group">
+            <label for="activationCode">🔑 激活码</label>
+            <input 
+                type="text" 
+                id="activationCode" 
+                placeholder="请输入激活码"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="buttons">
+            <button class="btn-activate" onclick="activate()" id="activateBtn">
+                激活软件
+            </button>
+            <button class="btn-deactivate" onclick="deactivate()" id="deactivateBtn">
+                停用软件
+            </button>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+        <div class="activation-info" id="activationInfo"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function getMachineCode() {
+            try {
+                const response = await fetch(`${API_BASE}/api/machine-id/machine-code`);
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('machineCode').textContent = data.machine_code;
+                } else {
+                    showError('获取机器码失败：' + data.message);
+                }
+            } catch (error) {
+                showError('获取机器码失败：' + error.message);
+            }
+        }
+
+        async function checkActivationStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/activation/status`);
+                const data = await response.json();
+                
+                if (data.is_activated) {
+                    showActivationInfo(data.activation_info);
+                    document.getElementById('activateBtn').disabled = true;
+                    document.getElementById('deactivateBtn').disabled = false;
+                } else {
+                    document.getElementById('activateBtn').disabled = false;
+                    document.getElementById('deactivateBtn').disabled = true;
+                }
+            } catch (error) {
+                console.error('检查激活状态失败：', error);
+            }
+        }
+
+        async function activate() {
+            const activationCode = document.getElementById('activationCode').value.trim();
+            
+            if (!activationCode) {
+                showError('请输入激活码');
+                return;
+            }
+
+            const btn = document.getElementById('activateBtn');
+            btn.innerHTML = '<span class="loading"></span>激活中...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/activation/activate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        activation_code: activationCode
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('软件激活成功！');
+                    await checkActivationStatus();
+                } else {
+                    showError('激活失败：' + data.message);
+                }
+            } catch (error) {
+                showError('激活失败：' + error.message);
+            } finally {
+                btn.innerHTML = '激活软件';
+                btn.disabled = false;
+            }
+        }
+
+        async function deactivate() {
+            if (!confirm('确定要停用软件吗？停用后所有功能将无法使用。')) {
+                return;
+            }
+
+            const btn = document.getElementById('deactivateBtn');
+            btn.innerHTML = '<span class="loading"></span>停用中...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/activation/deactivate`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('软件已停用');
+                    await checkActivationStatus();
+                } else {
+                    showError('停用失败：' + data.message);
+                }
+            } catch (error) {
+                showError('停用失败：' + error.message);
+            } finally {
+                btn.innerHTML = '停用软件';
+                btn.disabled = false;
+            }
+        }
+
+        function showSuccess(message) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = 'status-message status-success';
+            statusDiv.textContent = '✓ ' + message;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = 'status-message status-error';
+            statusDiv.textContent = '✗ ' + message;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showActivationInfo(info) {
+            const infoDiv = document.getElementById('activationInfo');
+            if (info) {
+                const activatedDate = new Date(info.activated_at * 1000);
+                infoDiv.innerHTML = `
+                    <h4>✓ 软件已激活</h4>
+                    <p><strong>机器码：</strong>${info.machine_code}</p>
+                    <p><strong>激活时间：</strong>${activatedDate.toLocaleString('zh-CN')}</p>
+                    <p><strong>版本：</strong>${info.version}</p>
+                `;
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+
+        // 页面加载时获取机器码和检查激活状态
+        window.onload = function() {
+            getMachineCode();
+            checkActivationStatus();
+        };
+    </script>
+</body>
+</html>

@@ -28,7 +28,18 @@ FIXED_PORT = 7553
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     # 启动事件
-    print("\n[INFO] 正在启动鼠标按键监听器...")
+    print("\n[INFO] 正在检查软件激活状态...")
+    try:
+        from utils.license_manager import check_activation
+        is_activated = check_activation()
+        if is_activated:
+            print("[SUCCESS] 软件已激活")
+        else:
+            print("[WARNING] 软件未激活，功能将受限")
+    except Exception as e:
+        print(f"[WARNING] 检查激活状态失败: {e}")
+    
+    print("[INFO] 正在启动鼠标按键监听器...")
     try:
         from routes.mouse_listener import start_listener
         result = start_listener()
@@ -77,7 +88,7 @@ if os.path.exists(FRONTEND_DIR):
     app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
 # 导入路由模块
-from routes import clipboard, shortcut, button_config, logs, monitor, mouse, mouse_config, mouse_listener, desktop_api, machine_id
+from routes import clipboard, shortcut, button_config, logs, monitor, mouse, mouse_config, mouse_listener, desktop_api, machine_id, activation
 
 # 注册路由
 app.include_router(clipboard.router, prefix="/api/clipboard", tags=["clipboard"])
@@ -90,6 +101,7 @@ app.include_router(mouse_config.router, prefix="/api/mouse-config", tags=["mouse
 app.include_router(mouse_listener.router, prefix="/api/mouse-listener", tags=["mouse-listener"])
 app.include_router(desktop_api.router, prefix="/api/desktop", tags=["desktop"])
 app.include_router(machine_id.router, prefix="/api/machine-id", tags=["machine-id"])
+app.include_router(activation.router, prefix="/api/activation", tags=["activation"])
 
 # 根路径返回desktop.html（仅限本机访问）
 @app.get("/", response_class=HTMLResponse)
@@ -129,6 +141,18 @@ async def phone() -> HTMLResponse:
 async def send() -> HTMLResponse:
     """返回手机端主页面（兼容旧路径）"""
     return await phone()
+
+
+# activation路径返回activation.html
+@app.get("/activation", response_class=HTMLResponse)
+async def activation() -> HTMLResponse:
+    """返回激活页面"""
+    activation_html_path = os.path.join(FRONTEND_DIR, "activation.html")
+    if os.path.exists(activation_html_path):
+        with open(activation_html_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return HTMLResponse(content=content)
+    return HTMLResponse(content="<h1>激活页面未找到</h1><p>前端文件未找到</p>")
 
 # 定义请求模型
 class SendRequest(BaseModel):
@@ -314,6 +338,11 @@ if __name__ == "__main__":
     print("  - GET /api/machine-id/machine-code : 获取机器码")
     print("  - GET /api/machine-id/hardware-info : 获取硬件信息")
     print("  - POST /api/machine-id/verify-machine-code : 验证机器码")
+    print("  - POST /api/activation/activate : 激活软件")
+    print("  - POST /api/activation/deactivate : 停用软件")
+    print("  - GET /api/activation/status : 获取激活状态")
+    print("  - GET /api/activation/machine-code : 获取机器码")
+    print("  - GET /activation : 激活页面")
     print("  - GET /health        : 健康检查")
     print("=" * 60)
     
