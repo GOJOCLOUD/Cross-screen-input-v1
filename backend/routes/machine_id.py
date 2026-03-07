@@ -3,6 +3,8 @@
 """
 机器码API路由
 提供获取机器码的API接口
+
+在Mac上完成操作
 """
 
 from fastapi import APIRouter, HTTPException

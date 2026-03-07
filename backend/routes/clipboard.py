@@ -26,13 +26,14 @@ class CopyResponse(BaseModel):
 async def copy_to_clipboard(request: Request, copy_data: CopyRequest):
     """复制文本到剪贴板"""
     try:
-        # 检查激活状态
+        # === 激活检查开始 ===
         from ..utils.license_manager import check_activation
         if not check_activation():
             raise HTTPException(
                 status_code=403,
                 detail="Software not activated. Please activate the software to use this feature."
             )
+        # === 激活检查结束 ===
         
         # 获取要复制的文本
         text = copy_data.msg

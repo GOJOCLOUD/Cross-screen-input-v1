@@ -197,13 +197,14 @@ def execute_mouse_action(action_str):
 async def execute_mouse_endpoint(request: MouseRequest):
     """执行鼠标操作"""
     try:
-        # 检查激活状态
+        # === 激活检查开始 ===
         from ..utils.license_manager import check_activation
         if not check_activation():
             raise HTTPException(
                 status_code=403,
                 detail="Software not activated. Please activate the software to use this feature."
             )
+        # === 激活检查结束 ===
         
         # 验证鼠标操作格式
         if not request.action:

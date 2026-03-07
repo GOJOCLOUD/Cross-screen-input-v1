@@ -3,6 +3,8 @@
 """
 激活API路由
 提供激活码验证和状态查询接口
+
+在Mac上完成操作
 """
 
 from fastapi import APIRouter, HTTPException

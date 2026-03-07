@@ -224,13 +224,14 @@ def execute_shortcut(shortcut_str):
 async def execute_shortcut_endpoint(request: ShortcutRequest):
     """执行键盘快捷键"""
     try:
-        # 检查激活状态
+        # === 激活检查开始 ===
         from ..utils.license_manager import check_activation
         if not check_activation():
             raise HTTPException(
                 status_code=403,
                 detail="Software not activated. Please activate the software to use this feature."
             )
+        # === 激活检查结束 ===
         
         # 验证快捷键格式
         if not request.shortcut:
